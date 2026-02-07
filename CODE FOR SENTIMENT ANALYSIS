@@ -1,0 +1,51 @@
+!pip install nltk pandas scikit-learn textblob
+import pandas as pd
+import nltk
+import re
+from textblob import TextBlob
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import classification_report, accuracy_score
+nltk.download('punkt')
+nltk.download('stopwords')
+from nltk.corpus import stopwords
+data = {
+    "text": [
+        "I love this product",
+        "This is the worst service",
+        "Very happy with the experience",
+        "Not satisfied with the quality",
+        "Amazing performance and great support",
+        "Terrible experience, very bad",
+        "It's okay, not bad",
+        "I am extremely satisfied",
+        "Worst app ever",
+        "Good service and friendly staff"
+    ],
+    "sentiment": [
+        "positive","negative","positive","negative","positive",
+        "negative","neutral","positive","negative","positive"
+    ]
+}
+
+df = pd.DataFrame(data)
+df
+def clean_text(text):
+    text = text.lower()
+    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    return text
+
+df['clean_text'] = df['text'].apply(clean_text)
+df
+vectorizer = CountVectorizer(stop_words='english')
+X = vectorizer.fit_transform(df['clean_text'])
+y = df['sentiment']
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+model = MultinomialNB()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
